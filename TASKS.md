@@ -6,6 +6,7 @@ This document outlines a series of educational tasks designed to help the team u
 - Proper class separation and single responsibility
 - Testing without mocks
 - Integration testing with test containers
+- Value classes and domain/entity object separation
 
 ## Task Progression
 
@@ -123,7 +124,37 @@ Create integration tests that use Testcontainers to test the product catalog fea
 - Implementing tests that closely resemble the production environment
 - Using Testcontainers to create isolated, reproducible test environments
 
-## Task 6: Create a New Feature Using All Concepts
+## Task 6: Implement Value Classes and Domain/Entity Object Separation
+
+**Objective:** Learn how to create value classes and separate domain objects from entity objects.
+
+**Description:**
+Refactor the product catalog feature to use value classes and proper domain/entity separation:
+- Create value classes for product attributes (e.g., ProductName, ProductPrice)
+- Separate rich domain models from persistence entities
+- Implement mappers to convert between domain and persistence models
+
+**Requirements:**
+1. Create immutable value classes for:
+   - ProductName (with validation for length, allowed characters)
+   - ProductPrice (with validation for minimum value, currency handling)
+   - ProductId (wrapping the UUID)
+   - ProductCategory (as an enumeration or value object)
+2. Refactor the Product domain model to:
+   - Use the new value classes
+   - Include business logic and invariants
+   - Be immutable where appropriate
+3. Create a separate ProductEntity class for persistence
+4. Implement a mapper to convert between Product and ProductEntity
+5. Update repositories, services, and controllers to work with the new model
+
+**Learning Outcomes:**
+- Understanding the benefits of value objects for domain modeling
+- Implementing immutable objects with proper validation
+- Separating domain concerns from persistence concerns
+- Creating clean mappings between different representations of data
+
+## Task 7: Create a New Feature Using All Concepts
 
 **Objective:** Apply all learned concepts to implement a new feature from scratch.
 
@@ -140,6 +171,7 @@ Implement an order management feature that allows:
 3. Design classes with single responsibilities
 4. Write tests without excessive mocking
 5. Create integration tests with Testcontainers
+6. Use value classes and domain/entity separation
 
 **Learning Outcomes:**
 - Applying all learned concepts in a cohesive manner
