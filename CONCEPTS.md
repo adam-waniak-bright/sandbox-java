@@ -428,6 +428,320 @@ This approach offers several advantages:
 - Ensures configuration is correct for the entire application
 
 
+## Value Classes and Domain/Entity Object Separation
+
+### What is it?
+Value Classes and Domain/Entity Object Separation is an approach to modeling domain concepts that distinguishes between:
+- **Value Objects**: Immutable objects that represent concepts with no identity, defined only by their attributes
+- **Entities**: Objects with a distinct identity that persists across changes to their attributes
+- **Domain Objects**: Rich behavioral models that encapsulate business rules and logic
+- **Persistence Models**: Data structures optimized for storage and retrieval
+
+### Key characteristics:
+
+#### Value Objects:
+- **Immutability**: Cannot be changed after creation
+- **Equality by structure**: Two value objects with the same attributes are considered equal
+- **Self-validation**: Ensure their invariants at creation time
+- **No identity**: Defined solely by their attributes, not by an identifier
+
+#### Entities:
+- **Identity**: Have a unique identifier that distinguishes them from other entities
+- **Mutable**: Can change over time while maintaining the same identity
+- **Lifecycle**: Often have a complex lifecycle with state transitions
+- **Persistence**: Usually need to be stored and retrieved
+
+#### Domain vs. Persistence Models:
+- **Domain Models**: Focus on behavior and business rules
+- **Persistence Models**: Focus on efficient storage and retrieval
+- **Separation of concerns**: Different models for different purposes
+- **Mapping**: Conversion between domain and persistence representations
+
+### Benefits:
+- **Improved domain modeling**: More accurate representation of business concepts
+- **Reduced bugs**: Immutable value objects prevent entire classes of errors
+- **Better encapsulation**: Business rules stay with the data they govern
+- **Simplified testing**: Value objects are easier to test due to their immutability
+- **Performance optimization**: Persistence models can be optimized without compromising domain logic
+- **Clearer boundaries**: Explicit separation between domain and infrastructure concerns
+
+### Example of Value Objects:
+
+```java
+// Value Object
+public final class Email {
+    private final String value;
+
+    public Email(String value) {
+        if (value == null || !value.matches("^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$")) {
+            throw new IllegalArgumentException("Invalid email format: " + value);
+        }
+        this.value = value;
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Email email = (Email) o;
+        return value.equals(email.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(value);
+    }
+
+    @Override
+    public String toString() {
+        return value;
+    }
+}
+
+// Value Object
+public final class Username {
+    private final String value;
+
+    public Username(String value) {
+        if (value == null || value.length() < 3 || value.length() > 50) {
+            throw new IllegalArgumentException("Username must be between 3 and 50 characters");
+        }
+        if (!value.matches("^[a-zA-Z0-9_-]+$")) {
+            throw new IllegalArgumentException("Username can only contain letters, numbers, underscores, and hyphens");
+        }
+        this.value = value;
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Username username = (Username) o;
+        return value.equals(username.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(value);
+    }
+
+    @Override
+    public String toString() {
+        return value;
+    }
+}
+```
+
+### Example of Domain vs. Entity Objects:
+
+```java
+// Domain Object (rich with behavior)
+public class User {
+    private final UserId id;
+    private Username username;
+    private Email email;
+    private Set<Role> roles;
+    private boolean active;
+
+    public User(Username username, Email email) {
+        this.id = new UserId(UUID.randomUUID());
+        this.username = username;
+        this.email = email;
+        this.roles = new HashSet<>();
+        this.active = false;
+    }
+
+    public void activate() {
+        this.active = true;
+    }
+
+    public void deactivate() {
+        this.active = false;
+    }
+
+    public void assignRole(Role role) {
+        this.roles.add(role);
+    }
+
+    public void removeRole(Role role) {
+        this.roles.remove(role);
+    }
+
+    public boolean hasRole(Role role) {
+        return this.roles.contains(role);
+    }
+
+    public boolean canPerformAction(String actionName) {
+        return this.active && this.roles.stream()
+            .anyMatch(role -> role.hasPermission(actionName));
+    }
+
+    // Getters (no setters to enforce invariants through methods)
+    public UserId getId() {
+        return id;
+    }
+
+    public Username getUsername() {
+        return username;
+    }
+
+    public Email getEmail() {
+        return email;
+    }
+
+    public Set<Role> getRoles() {
+        return Collections.unmodifiableSet(roles);
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+}
+
+// Entity (persistence model)
+@Entity
+@Table(name = "users")
+public class UserEntity {
+    @Id
+    private UUID id;
+
+    @Column(unique = true)
+    private String username;
+
+    @Column(unique = true)
+    private String email;
+
+    @Column
+    private boolean active;
+
+    @ManyToMany
+    @JoinTable(
+        name = "user_roles",
+        joinColumns = @JoinColumn(name = "user_id"),
+        inverseJoinColumns = @JoinColumn(name = "role_id")
+    )
+    private Set<RoleEntity> roles = new HashSet<>();
+
+    // Default constructor for JPA
+    protected UserEntity() {}
+
+    // Getters and setters
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
+    public Set<RoleEntity> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(Set<RoleEntity> roles) {
+        this.roles = roles;
+    }
+}
+```
+
+### Example of Mapping Between Domain and Persistence:
+
+```java
+// Mapper to convert between domain and persistence models
+public class UserMapper {
+    private final RoleMapper roleMapper;
+
+    public UserMapper(RoleMapper roleMapper) {
+        this.roleMapper = roleMapper;
+    }
+
+    public UserEntity toEntity(User user) {
+        UserEntity entity = new UserEntity();
+        entity.setId(user.getId().getValue());
+        entity.setUsername(user.getUsername().getValue());
+        entity.setEmail(user.getEmail().getValue());
+        entity.setActive(user.isActive());
+
+        Set<RoleEntity> roleEntities = user.getRoles().stream()
+            .map(roleMapper::toEntity)
+            .collect(Collectors.toSet());
+        entity.setRoles(roleEntities);
+
+        return entity;
+    }
+
+    public User toDomain(UserEntity entity) {
+        Username username = new Username(entity.getUsername());
+        Email email = new Email(entity.getEmail());
+        UserId id = new UserId(entity.getId());
+
+        // Recreate the domain object
+        User user = new User(username, email);
+
+        // Use reflection or other techniques to set the ID
+        // (in a real application, you might have a constructor that takes an ID)
+        setPrivateField(user, "id", id);
+
+        // Set other properties
+        if (entity.isActive()) {
+            user.activate();
+        } else {
+            user.deactivate();
+        }
+
+        // Add roles
+        entity.getRoles().stream()
+            .map(roleMapper::toDomain)
+            .forEach(user::assignRole);
+
+        return user;
+    }
+
+    // Helper method to set private fields (for demonstration purposes)
+    private void setPrivateField(Object object, String fieldName, Object value) {
+        try {
+            Field field = object.getClass().getDeclaredField(fieldName);
+            field.setAccessible(true);
+            field.set(object, value);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to set private field", e);
+        }
+    }
+}
+```
+
 ## Conclusion
 
 These concepts form the foundation of modern software architecture and testing practices. By understanding and applying these concepts, you'll be able to build more maintainable, testable, and scalable applications.
