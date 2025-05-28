@@ -123,28 +123,7 @@ Create integration tests that use Testcontainers to test the product catalog fea
 - Implementing tests that closely resemble the production environment
 - Using Testcontainers to create isolated, reproducible test environments
 
-## Task 6: Implement Event Sourcing (Advanced)
-
-**Objective:** Learn how to implement event sourcing as an extension of CQRS.
-
-**Description:**
-Extend the product catalog feature to use event sourcing:
-- Store product events instead of current state
-- Rebuild product state from events
-- Implement event handlers for different event types
-
-**Requirements:**
-1. Create event classes for product-related events
-2. Implement an event store
-3. Update command handlers to emit events
-4. Create projections that build read models from events
-
-**Learning Outcomes:**
-- Understanding the concept of event sourcing
-- Implementing an event-driven architecture
-- Recognizing the benefits and trade-offs of event sourcing
-
-## Task 7: Create a New Feature Using All Concepts
+## Task 6: Create a New Feature Using All Concepts
 
 **Objective:** Apply all learned concepts to implement a new feature from scratch.
 

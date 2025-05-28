@@ -24,40 +24,40 @@ Vertical slices architecture organizes code by feature (or "slice") rather than 
 **Traditional Layered Architecture:**
 ```
 ├── Controllers/
-│   ├── ProductController.java
-│   ├── OrderController.java
-│   └── UserController.java
+│   ├── UserController.java
+│   ├── RoleController.java
+│   └── PermissionController.java
 ├── Services/
-│   ├── ProductService.java
-│   ├── OrderService.java
-│   └── UserService.java
+│   ├── UserService.java
+│   ├── RoleService.java
+│   └── PermissionService.java
 ├── Repositories/
-│   ├── ProductRepository.java
-│   ├── OrderRepository.java
-│   └── UserRepository.java
+│   ├── UserRepository.java
+│   ├── RoleRepository.java
+│   └── PermissionRepository.java
 └── Models/
-    ├── Product.java
-    ├── Order.java
-    └── User.java
+    ├── User.java
+    ├── Role.java
+    └── Permission.java
 ```
 
 **Vertical Slices Architecture:**
 ```
-├── Products/
-│   ├── ProductController.java
-│   ├── ProductService.java
-│   ├── ProductRepository.java
-│   └── Product.java
-├── Orders/
-│   ├── OrderController.java
-│   ├── OrderService.java
-│   ├── OrderRepository.java
-│   └── Order.java
-└── Users/
-    ├── UserController.java
-    ├── UserService.java
-    ├── UserRepository.java
-    └── User.java
+├── Users/
+│   ├── UserController.java
+│   ├── UserService.java
+│   ├── UserRepository.java
+│   └── User.java
+├── Roles/
+│   ├── RoleController.java
+│   ├── RoleService.java
+│   ├── RoleRepository.java
+│   └── Role.java
+└── Permissions/
+    ├── PermissionController.java
+    ├── PermissionService.java
+    ├── PermissionRepository.java
+    └── Permission.java
 ```
 
 ## CQRS (Command Query Responsibility Segregation)
@@ -83,25 +83,25 @@ CQRS is a pattern that separates read and write operations into different models
 **Command side:**
 ```java
 // Command
-public class CreateProductCommand {
-    private String name;
-    private String description;
-    private BigDecimal price;
+public class CreateUserCommand {
+    private String username;
+    private String email;
+    private String role;
     // getters, setters
 }
 
 // Command Handler
-public class CreateProductCommandHandler {
-    private final ProductRepository repository;
-    
-    public void handle(CreateProductCommand command) {
-        Product product = new Product(
+public class CreateUserCommandHandler {
+    private final UserRepository repository;
+
+    public void handle(CreateUserCommand command) {
+        User user = new User(
             UUID.randomUUID(),
-            command.getName(),
-            command.getDescription(),
-            command.getPrice()
+            command.getUsername(),
+            command.getEmail(),
+            command.getRole()
         );
-        repository.save(product);
+        repository.save(user);
     }
 }
 ```
@@ -109,22 +109,22 @@ public class CreateProductCommandHandler {
 **Query side:**
 ```java
 // Query
-public class GetProductQuery {
+public class GetUserQuery {
     private UUID id;
     // getters, setters
 }
 
 // Query Handler
-public class GetProductQueryHandler {
-    private final ProductReadRepository repository;
-    
-    public ProductDto handle(GetProductQuery query) {
+public class GetUserQueryHandler {
+    private final UserReadRepository repository;
+
+    public UserDto handle(GetUserQuery query) {
         return repository.findById(query.getId())
             .map(this::mapToDto)
-            .orElseThrow(() -> new ProductNotFoundException(query.getId()));
+            .orElseThrow(() -> new UserNotFoundException(query.getId()));
     }
-    
-    private ProductDto mapToDto(ProductReadModel product) {
+
+    private UserDto mapToDto(UserReadModel user) {
         // mapping logic
     }
 }
@@ -151,31 +151,31 @@ The Single Responsibility Principle (SRP) states that a class should have only o
 
 **Before (multiple responsibilities):**
 ```java
-public class ProductService {
-    private final ProductRepository repository;
-    
-    public Product createProduct(String name, String description, BigDecimal price) {
+public class UserService {
+    private final UserRepository repository;
+
+    public User createUser(String username, String email, String role) {
         // Validation
-        if (name == null || name.isEmpty()) {
-            throw new IllegalArgumentException("Name cannot be empty");
+        if (username == null || username.isEmpty()) {
+            throw new IllegalArgumentException("Username cannot be empty");
         }
-        if (price == null || price.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("Price must be positive");
+        if (email == null || !email.contains("@")) {
+            throw new IllegalArgumentException("Email must be valid");
         }
-        
+
         // Creation
-        Product product = new Product(UUID.randomUUID(), name, description, price);
-        
+        User user = new User(UUID.randomUUID(), username, email, role);
+
         // Persistence
-        repository.save(product);
-        
+        repository.save(user);
+
         // Notification
-        sendNewProductNotification(product);
-        
-        return product;
+        sendNewUserNotification(user);
+
+        return user;
     }
-    
-    private void sendNewProductNotification(Product product) {
+
+    private void sendNewUserNotification(User user) {
         // Email sending logic
     }
 }
@@ -184,49 +184,49 @@ public class ProductService {
 **After (single responsibility):**
 ```java
 // Validation
-public class ProductValidator {
-    public void validate(CreateProductCommand command) {
-        if (command.getName() == null || command.getName().isEmpty()) {
-            throw new IllegalArgumentException("Name cannot be empty");
+public class UserValidator {
+    public void validate(CreateUserCommand command) {
+        if (command.getUsername() == null || command.getUsername().isEmpty()) {
+            throw new IllegalArgumentException("Username cannot be empty");
         }
-        if (command.getPrice() == null || command.getPrice().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("Price must be positive");
+        if (command.getEmail() == null || !command.getEmail().contains("@")) {
+            throw new IllegalArgumentException("Email must be valid");
         }
     }
 }
 
 // Creation
-public class ProductFactory {
-    public Product createProduct(String name, String description, BigDecimal price) {
-        return new Product(UUID.randomUUID(), name, description, price);
+public class UserFactory {
+    public User createUser(String username, String email, String role) {
+        return new User(UUID.randomUUID(), username, email, role);
     }
 }
 
 // Command Handler (orchestration)
-public class CreateProductCommandHandler {
-    private final ProductValidator validator;
-    private final ProductFactory factory;
-    private final ProductRepository repository;
-    private final ProductNotifier notifier;
-    
-    public void handle(CreateProductCommand command) {
+public class CreateUserCommandHandler {
+    private final UserValidator validator;
+    private final UserFactory factory;
+    private final UserRepository repository;
+    private final UserNotifier notifier;
+
+    public void handle(CreateUserCommand command) {
         validator.validate(command);
-        
-        Product product = factory.createProduct(
-            command.getName(),
-            command.getDescription(),
-            command.getPrice()
+
+        User user = factory.createUser(
+            command.getUsername(),
+            command.getEmail(),
+            command.getRole()
         );
-        
-        repository.save(product);
-        
-        notifier.notifyAboutNewProduct(product);
+
+        repository.save(user);
+
+        notifier.notifyAboutNewUser(user);
     }
 }
 
 // Notification
-public class ProductNotifier {
-    public void notifyAboutNewProduct(Product product) {
+public class UserNotifier {
+    public void notifyAboutNewUser(User user) {
         // Email sending logic
     }
 }
@@ -254,50 +254,50 @@ Testing without mocks (or with minimal mocking) involves using real implementati
 **Traditional approach with mocks:**
 ```java
 @Test
-void createProduct_ValidData_ProductCreated() {
+void createUser_ValidData_UserCreated() {
     // Arrange
-    ProductRepository mockRepository = mock(ProductRepository.class);
-    ProductService service = new ProductService(mockRepository);
-    
+    UserRepository mockRepository = mock(UserRepository.class);
+    UserService service = new UserService(mockRepository);
+
     // Act
-    service.createProduct("Test Product", "Description", new BigDecimal("10.00"));
-    
+    service.createUser("testuser", "test@example.com", "USER");
+
     // Assert
-    verify(mockRepository).save(any(Product.class));
+    verify(mockRepository).save(any(User.class));
 }
 ```
 
 **Testing without mocks:**
 ```java
 @Test
-void createProduct_ValidData_ProductCreated() {
+void createUser_ValidData_UserCreated() {
     // Arrange
-    ProductRepository repository = new InMemoryProductRepository();
-    ProductService service = new ProductService(repository);
-    
+    UserRepository repository = new InMemoryUserRepository();
+    UserService service = new UserService(repository);
+
     // Act
-    Product product = service.createProduct("Test Product", "Description", new BigDecimal("10.00"));
-    
+    User user = service.createUser("testuser", "test@example.com", "USER");
+
     // Assert
-    Optional<Product> savedProduct = repository.findById(product.getId());
-    assertTrue(savedProduct.isPresent());
-    assertEquals("Test Product", savedProduct.get().getName());
+    Optional<User> savedUser = repository.findById(user.getId());
+    assertTrue(savedUser.isPresent());
+    assertEquals("testuser", savedUser.get().getUsername());
 }
 
 // In-memory implementation
-class InMemoryProductRepository implements ProductRepository {
-    private final Map<UUID, Product> products = new HashMap<>();
-    
+class InMemoryUserRepository implements UserRepository {
+    private final Map<UUID, User> users = new HashMap<>();
+
     @Override
-    public void save(Product product) {
-        products.put(product.getId(), product);
+    public void save(User user) {
+        users.put(user.getId(), user);
     }
-    
+
     @Override
-    public Optional<Product> findById(UUID id) {
-        return Optional.ofNullable(products.get(id));
+    public Optional<User> findById(UUID id) {
+        return Optional.ofNullable(users.get(id));
     }
-    
+
     // Other methods...
 }
 ```
@@ -312,27 +312,29 @@ Testcontainers is a Java library that provides lightweight, throwaway instances 
 - **Isolated environments**: Each test runs in its own container
 - **Automatic cleanup**: Containers are disposed of after tests complete
 - **Support for various technologies**: Databases, message brokers, web browsers, etc.
+- **Full application testing**: Test through web controllers with the entire application running
 
 ### Benefits:
 - Tests that accurately reflect production behavior
 - Catching database-specific issues early
 - No need to maintain separate test databases
 - Consistent test environments across development machines
+- End-to-end testing that verifies the entire request flow
 
-### Example:
+### Repository-level testing example:
 
 ```java
 @Testcontainers
-class ProductRepositoryIntegrationTest {
-    
+class UserRepositoryIntegrationTest {
+
     @Container
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:14")
         .withDatabaseName("testdb")
         .withUsername("test")
         .withPassword("test");
-    
-    private ProductRepository repository;
-    
+
+    private UserRepository repository;
+
     @BeforeEach
     void setUp() {
         // Configure Spring datasource to use the container
@@ -341,121 +343,90 @@ class ProductRepositoryIntegrationTest {
             .username(postgres.getUsername())
             .password(postgres.getPassword())
             .build();
-        
+
         // Create repository with the configured datasource
-        repository = new JdbcProductRepository(dataSource);
+        repository = new JdbcUserRepository(dataSource);
     }
-    
+
     @Test
-    void saveAndRetrieveProduct() {
+    void saveAndRetrieveUser() {
         // Arrange
-        Product product = new Product(UUID.randomUUID(), "Test Product", "Description", new BigDecimal("10.00"));
-        
+        User user = new User(UUID.randomUUID(), "testuser", "test@example.com", "USER");
+
         // Act
-        repository.save(product);
-        Optional<Product> retrieved = repository.findById(product.getId());
-        
+        repository.save(user);
+        Optional<User> retrieved = repository.findById(user.getId());
+
         // Assert
         assertTrue(retrieved.isPresent());
-        assertEquals("Test Product", retrieved.get().getName());
+        assertEquals("testuser", retrieved.get().getUsername());
     }
 }
 ```
 
-## Event Sourcing
-
-### What is it?
-Event Sourcing is a pattern where changes to the application state are stored as a sequence of events. Instead of storing the current state, the system records all events that led to that state and can rebuild the state by replaying those events.
-
-### Key components:
-- **Events**: Immutable records of something that happened in the system
-- **Event Store**: Persistent storage for events
-- **Aggregates**: Domain objects that handle commands and emit events
-- **Projections**: Build read models from events for querying
-
-### Benefits:
-- Complete audit trail of all changes
-- Ability to reconstruct past states
-- Natural fit with CQRS
-- Temporal queries (what was the state at a specific time)
-
-### Simple Event Sourcing example:
+### Full application testing through web controllers:
 
 ```java
-// Event
-public class ProductCreatedEvent {
-    private final UUID productId;
-    private final String name;
-    private final String description;
-    private final BigDecimal price;
-    // constructor, getters
-}
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Testcontainers
+class UserControllerIntegrationTest {
 
-// Aggregate
-public class Product {
-    private UUID id;
-    private String name;
-    private String description;
-    private BigDecimal price;
-    private List<Object> uncommittedEvents = new ArrayList<>();
-    
-    public static Product create(String name, String description, BigDecimal price) {
-        Product product = new Product();
-        UUID id = UUID.randomUUID();
-        
-        ProductCreatedEvent event = new ProductCreatedEvent(id, name, description, price);
-        product.applyEvent(event);
-        product.uncommittedEvents.add(event);
-        
-        return product;
-    }
-    
-    private void applyEvent(ProductCreatedEvent event) {
-        this.id = event.getProductId();
-        this.name = event.getName();
-        this.description = event.getDescription();
-        this.price = event.getPrice();
-    }
-    
-    public List<Object> getUncommittedEvents() {
-        return new ArrayList<>(uncommittedEvents);
-    }
-    
-    public void clearUncommittedEvents() {
-        uncommittedEvents.clear();
-    }
-}
+    @Container
+    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:14")
+        .withDatabaseName("testdb")
+        .withUsername("test")
+        .withPassword("test");
 
-// Event Store
-public class EventStore {
-    private final Map<UUID, List<Object>> eventStreams = new HashMap<>();
-    
-    public void saveEvents(UUID aggregateId, List<Object> events) {
-        List<Object> eventStream = eventStreams.computeIfAbsent(aggregateId, k -> new ArrayList<>());
-        eventStream.addAll(events);
+    @DynamicPropertySource
+    static void postgresProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", postgres::getJdbcUrl);
+        registry.add("spring.datasource.username", postgres::getUsername);
+        registry.add("spring.datasource.password", postgres::getPassword);
     }
-    
-    public List<Object> getEvents(UUID aggregateId) {
-        return eventStreams.getOrDefault(aggregateId, Collections.emptyList());
-    }
-}
 
-// Command Handler
-public class CreateProductCommandHandler {
-    private final EventStore eventStore;
-    
-    public void handle(CreateProductCommand command) {
-        Product product = Product.create(
-            command.getName(),
-            command.getDescription(),
-            command.getPrice()
+    @Autowired
+    private TestRestTemplate restTemplate;
+
+    @Test
+    void createAndGetUser() {
+        // Arrange
+        UserCreateRequest request = new UserCreateRequest("testuser", "test@example.com", "USER");
+
+        // Act - Create user
+        ResponseEntity<UserResponse> createResponse = restTemplate.postForEntity(
+            "/api/users",
+            request,
+            UserResponse.class
         );
-        
-        eventStore.saveEvents(product.getId(), product.getUncommittedEvents());
-        product.clearUncommittedEvents();
+
+        // Assert - User created successfully
+        assertEquals(HttpStatus.CREATED, createResponse.getStatusCode());
+        assertNotNull(createResponse.getBody());
+        assertNotNull(createResponse.getBody().getId());
+        assertEquals("testuser", createResponse.getBody().getUsername());
+
+        // Act - Get user
+        ResponseEntity<UserResponse> getResponse = restTemplate.getForEntity(
+            "/api/users/" + createResponse.getBody().getId(),
+            UserResponse.class
+        );
+
+        // Assert - User retrieved successfully
+        assertEquals(HttpStatus.OK, getResponse.getStatusCode());
+        assertEquals("testuser", getResponse.getBody().getUsername());
+        assertEquals("test@example.com", getResponse.getBody().getEmail());
+        assertEquals("USER", getResponse.getBody().getRole());
     }
 }
 ```
+
+This approach offers several advantages:
+- Tests the entire application stack from HTTP request to database and back
+- Verifies that controllers, services, and repositories work together correctly
+- Catches issues in request/response mapping
+- Tests actual HTTP endpoints as clients would use them
+- Ensures configuration is correct for the entire application
+
 
 ## Conclusion
 
