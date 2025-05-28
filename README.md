@@ -2,7 +2,7 @@
 
 ## Overview
 
-This is an educational sandbox project designed to help team members improve their skills in modern software architecture and testing practices. The project serves as a playground for implementing and experimenting with concepts such as:
+This is an educational sandbox project designed to help improve skills in modern software architecture and testing practices. The project serves as a playground for implementing and experimenting with concepts such as:
 
 - Vertical slices architecture
 - CQRS (Command Query Responsibility Segregation)
