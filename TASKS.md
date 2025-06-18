@@ -518,3 +518,12 @@ Scenario 3: Loyalty Discount Application
 These tasks provide precisely defined business rules that eliminate ambiguity while teaching modern software architecture patterns. Each rule includes exact calculations, validation criteria, and expected behaviors that students can implement and test definitively.
 
 The progression from simple order management to complex subscription handling demonstrates how architectural patterns scale with business complexity, while the precise specifications ensure consistent implementation and reliable testing.
+
+
+Ideas for next quests:
+
+Observability (terraform, actuator)
+CDKTF usage
+Containerization (docker)
+Github workflows
+dependency injection
