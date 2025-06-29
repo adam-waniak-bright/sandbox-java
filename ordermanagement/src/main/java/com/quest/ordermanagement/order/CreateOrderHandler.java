@@ -6,7 +6,8 @@ import com.quest.ordermanagement.order.api.model.OrderResponse;
 import com.quest.ordermanagement.order.api.model.OrderStatus;
 import com.quest.ordermanagement.order.domain.Order;
 import com.quest.ordermanagement.order.domain.OrderItem;
-import com.quest.ordermanagement.order.domain.repo.InMemoryOrderRepository;
+import com.quest.ordermanagement.order.domain.repo.OrderEntityMapper;
+import com.quest.ordermanagement.order.domain.repo.OrderRepository;
 import com.quest.ordermanagement.product.FetchProductHandler;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -20,16 +21,17 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class CreateOrderHandler {
-    private final InMemoryOrderRepository orderRepository;
+    private final OrderRepository orderRepository;
     private final FetchCustomerHandler fetchCustomerHandler;
     private final FetchProductHandler fetchProductHandler;
+    private final OrderEntityMapper orderEntityMapper;
     private final OrderResponseMapper orderResponseMapper;
 
     public OrderResponse createOrder(CreateOrderRequest createOrderRequest) {
         fetchCustomerHandler.verifyCustomerExists(createOrderRequest.getCustomerId());
         var orderItems = createOrderItems(createOrderRequest);
         var order = new Order(createOrderRequest.getCustomerId(), orderItems, OrderStatus.DRAFT);
-        orderRepository.save(order);
+        orderRepository.save(orderEntityMapper.toEntity(order));
         return orderResponseMapper.toOrderResponse(order);
     }
 
