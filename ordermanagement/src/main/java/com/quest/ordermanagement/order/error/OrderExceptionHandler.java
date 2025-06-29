@@ -30,6 +30,13 @@ public class OrderExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
     }
 
+    @ExceptionHandler(OrderNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleOrderNotFoundException(OrderNotFoundException ex) {
+        var errorResponse = new ErrorResponse().error("order_not_found").message(ex.getMessage());
+        log.error("Order not found: {}", ex.getMessage(), ex);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
         var errorDetails = ex.getBindingResult().getFieldErrors().stream()

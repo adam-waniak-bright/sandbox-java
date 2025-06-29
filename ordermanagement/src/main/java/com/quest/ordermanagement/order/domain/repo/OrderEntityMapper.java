@@ -12,7 +12,7 @@ public class OrderEntityMapper {
                 order.getId(),
                 order.getCustomerId(),
                 order.getStatus(),
-                toEntityOrderItem(order.getItems()),
+                toEntityOrderItem(order),
                 order.getSubtotalAmount(),
                 order.getTaxAmount(),
                 order.getShippingAmount(),
@@ -24,11 +24,12 @@ public class OrderEntityMapper {
                 order.getCancelledAt());
     }
 
-    private List<OrderItemEntity> toEntityOrderItem(List<OrderItem> items) {
+    private List<OrderItemEntity> toEntityOrderItem(Order order) {
+        var items = order.getItems();
         return items.stream()
                 .map(item -> new OrderItemEntity(
                         item.getId(),
-                        item.getOrderId(),
+                        createOrderEntity(order),
                         item.getProductId(),
                         item.getProductName(),
                         item.getQuantity(),
@@ -37,28 +38,33 @@ public class OrderEntityMapper {
                 .toList();
     }
 
-    public Order toDomain(OrderEntity entity) {
-        return new Order(
-                entity.getId(),
-                entity.getCustomerId(),
-                entity.getStatus(),
-                toDomainOrderItem(entity.getItems()),
-                entity.getSubtotalAmount(),
-                entity.getTaxAmount(),
-                entity.getShippingAmount(),
-                entity.getTotalAmount(),
-                entity.getCreatedAt(),
-                entity.getConfirmedAt(),
-                entity.getShippedAt(),
-                entity.getDeliveredAt(),
-                entity.getCancelledAt());
+    private OrderEntity createOrderEntity(Order order) {
+        return OrderEntity.builder().id(order.getId()).build();
     }
 
-    private List<OrderItem> toDomainOrderItem(List<OrderItemEntity> items) {
+    public Order toDomain(OrderEntity orderEntity) {
+        return new Order(
+                orderEntity.getId(),
+                orderEntity.getCustomerId(),
+                orderEntity.getStatus(),
+                toDomainOrderItem(orderEntity),
+                orderEntity.getSubtotalAmount(),
+                orderEntity.getTaxAmount(),
+                orderEntity.getShippingAmount(),
+                orderEntity.getTotalAmount(),
+                orderEntity.getCreatedAt(),
+                orderEntity.getConfirmedAt(),
+                orderEntity.getShippedAt(),
+                orderEntity.getDeliveredAt(),
+                orderEntity.getCancelledAt());
+    }
+
+    private List<OrderItem> toDomainOrderItem(OrderEntity orderEntity) {
+        var items = orderEntity.getItems();
         return items.stream()
                 .map(item -> new OrderItem(
                         item.getId(),
-                        item.getOrderId(),
+                        orderEntity.getId(),
                         item.getProductId(),
                         item.getProductName(),
                         item.getQuantity(),
