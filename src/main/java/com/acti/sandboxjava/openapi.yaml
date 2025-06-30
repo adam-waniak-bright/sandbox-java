@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Order Management API
-  description: RESTful API for managing orders in vertical slice architecture
+  description: RESTful API for managing orders
   version: 1.0.0
 
 servers:
@@ -14,7 +14,6 @@ paths:
   /orders:
     post:
       summary: Create a new order
-      description: Creates a new order in DRAFT status
       operationId: createOrder
       requestBody:
         required: true
@@ -22,17 +21,6 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/CreateOrderRequest'
-            example:
-              customerId: "CUST1234"
-              items:
-                - productId: "PRD00001"
-                  productName: "Wireless Headphones"
-                  quantity: 2
-                  unitPriceCents: 7999
-                - productId: "PRD00002"
-                  productName: "USB Cable"
-                  quantity: 1
-                  unitPriceCents: 1299
       responses:
         '201':
           description: Order created successfully
@@ -55,25 +43,21 @@ paths:
 
     get:
       summary: List all orders
-      description: Retrieve a paginated list of orders with optional filtering
       operationId: listOrders
       parameters:
         - name: customerId
           in: query
-          description: Filter by customer ID
           required: false
           schema:
             type: string
             pattern: '^CUST[A-Za-z0-9]{4,8}$'
         - name: status
           in: query
-          description: Filter by order status
           required: false
           schema:
             $ref: '#/components/schemas/OrderStatus'
         - name: page
           in: query
-          description: Page number (1-based)
           required: false
           schema:
             type: integer
@@ -81,7 +65,6 @@ paths:
             default: 1
         - name: limit
           in: query
-          description: Number of items per page
           required: false
           schema:
             type: integer
@@ -105,13 +88,11 @@ paths:
   /orders/{orderId}:
     get:
       summary: Get order details
-      description: Retrieve detailed information about a specific order
       operationId: getOrder
       parameters:
         - name: orderId
           in: path
           required: true
-          description: Unique identifier for the order
           schema:
             type: string
             format: uuid
@@ -131,13 +112,11 @@ paths:
 
     patch:
       summary: Update order status
-      description: Update the status of an existing order
       operationId: updateOrderStatus
       parameters:
         - name: orderId
           in: path
           required: true
-          description: Unique identifier for the order
           schema:
             type: string
             format: uuid
@@ -147,8 +126,6 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/UpdateOrderStatusRequest'
-            example:
-              status: "CONFIRMED"
       responses:
         '200':
           description: Order status updated successfully
@@ -180,15 +157,12 @@ components:
         customerId:
           type: string
           pattern: '^CUST[A-Za-z0-9]{4,8}$'
-          description: Customer identifier
-          example: "CUST1234"
         items:
           type: array
           minItems: 1
           maxItems: 20
           items:
             $ref: '#/components/schemas/CreateOrderItemRequest'
-          description: List of items to include in the order
 
     CreateOrderItemRequest:
       type: object
@@ -200,7 +174,15 @@ components:
       properties:
         productId:
           type: string
-          pattern: '^PRD[0-9]{5}
+          pattern: '^PRD[0-9]{5}$'
+        productName:
+          type: string
+        quantity:
+          type: integer
+          minimum: 1
+        unitPriceCents:
+          type: integer
+          minimum: 0
 
     UpdateOrderStatusRequest:
       type: object
@@ -216,11 +198,9 @@ components:
         id:
           type: string
           format: uuid
-          description: Unique identifier for the order
         customerId:
           type: string
           pattern: '^CUST[A-Za-z0-9]{4,8}$'
-          description: Customer identifier
         status:
           $ref: '#/components/schemas/OrderStatus'
         items:
@@ -229,48 +209,31 @@ components:
             $ref: '#/components/schemas/OrderItemResponse'
         subtotalCents:
           type: integer
-          format: int64
-          minimum: 0
-          description: Subtotal in cents before tax and shipping
         taxCents:
           type: integer
-          format: int64
-          minimum: 0
-          description: Tax amount in cents (8% of subtotal)
         shippingCents:
           type: integer
-          format: int64
-          minimum: 0
-          description: Shipping cost in cents (500 cents or 0 cents)
         totalCents:
           type: integer
-          format: int64
-          minimum: 100
-          description: Total amount in cents (subtotal + tax + shipping)
         createdAt:
           type: string
           format: date-time
-          description: Order creation timestamp
         confirmedAt:
           type: string
           format: date-time
           nullable: true
-          description: Order confirmation timestamp
         shippedAt:
           type: string
           format: date-time
           nullable: true
-          description: Order shipment timestamp
         deliveredAt:
           type: string
           format: date-time
           nullable: true
-          description: Order delivery timestamp
         cancelledAt:
           type: string
           format: date-time
           nullable: true
-          description: Order cancellation timestamp
 
     OrderItemResponse:
       type: object
@@ -278,10 +241,15 @@ components:
         id:
           type: string
           format: uuid
-          description: Unique identifier for the order item
         productId:
           type: string
-          pattern: '^PRD[0-9]{5}
+          pattern: '^PRD[0-9]{5}$'
+        productName:
+          type: string
+        quantity:
+          type: integer
+        unitPriceCents:
+          type: integer
 
     OrderListResponse:
       type: object
@@ -298,26 +266,16 @@ components:
       properties:
         page:
           type: integer
-          minimum: 1
-          description: Current page number
         limit:
           type: integer
-          minimum: 1
-          description: Items per page
         totalItems:
           type: integer
-          minimum: 0
-          description: Total number of items
         totalPages:
           type: integer
-          minimum: 0
-          description: Total number of pages
         hasNext:
           type: boolean
-          description: Whether there are more pages
         hasPrevious:
           type: boolean
-          description: Whether there are previous pages
 
     OrderStatus:
       type: string
@@ -327,7 +285,6 @@ components:
         - SHIPPED
         - DELIVERED
         - CANCELLED
-      description: Current status of the order
 
     ErrorResponse:
       type: object
@@ -337,17 +294,11 @@ components:
       properties:
         error:
           type: string
-          description: Error code
-          example: "INVALID_REQUEST"
         message:
           type: string
-          description: Human-readable error message
-          example: "Order must have at least 1 item"
         details:
           type: object
-          description: Additional error details
           additionalProperties: true
         timestamp:
           type: string
           format: date-time
-          description: Error occurrence timestamp
