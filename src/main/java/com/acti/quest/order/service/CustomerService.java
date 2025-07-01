@@ -1,19 +1,19 @@
-package com.acti.sandboxjava.order.service;
+package com.acti.quest.order.service;
 
-import com.acti.sandboxjava.order.domain.Customer;
-import com.acti.sandboxjava.order.domain.CustomerStatus;
-import com.acti.sandboxjava.order.repository.CustomerRepository;
+import com.acti.quest.order.domain.Customer;
+import com.acti.quest.order.domain.CustomerStatus;
+import com.acti.quest.order.repository.CustomerRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class CustomerService {
 
     private final CustomerRepository customerRepository;
 
-    public CustomerService(CustomerRepository customerRepository) {
-        this.customerRepository = customerRepository;
-    }
-
+    @SneakyThrows
     public void validateCustomerIsActive(String customerId) {
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new IllegalArgumentException("Customer not found: " + customerId));

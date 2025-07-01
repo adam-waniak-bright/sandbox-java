@@ -1,4 +1,4 @@
-package com.acti.sandboxjava;
+package com.acti.quest;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

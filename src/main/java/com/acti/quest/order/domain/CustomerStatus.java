@@ -1,4 +1,4 @@
-package com.acti.sandboxjava.order.domain;
+package com.acti.quest.order.domain;
 
 public enum CustomerStatus {
     ACTIVE,

@@ -1,9 +1,11 @@
-package com.acti.sandboxjava.order.domain;
+package com.acti.quest.order.domain;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.UUID;
 
 @Entity
 @Table(name = "order_items")
@@ -14,7 +16,7 @@ public class OrderItem {
 
     @Id
     @Column(columnDefinition = "uuid")
-    private String id;
+    private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", nullable = false)

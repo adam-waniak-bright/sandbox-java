@@ -1,6 +1,6 @@
-package com.acti.sandboxjava.order.repository;
+package com.acti.quest.order.repository;
 
-import com.acti.sandboxjava.order.domain.Order;
+import com.acti.quest.order.domain.Order;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

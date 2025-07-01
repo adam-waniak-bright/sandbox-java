@@ -1,13 +1,12 @@
-package com.acti.sandboxjava;
+package com.acti.quest;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class SandboxJavaApplication {
-
+public class OrderApplication {
   public static void main(String[] args) {
-    SpringApplication.run(SandboxJavaApplication.class, args);
+    SpringApplication.run(OrderApplication.class, args);
   }
 
 }

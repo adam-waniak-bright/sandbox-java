@@ -48,7 +48,7 @@ dependencies {
 // ✅ Configure OpenAPI code generation
 openApiGenerate {
     generatorName = "spring"
-    inputSpec = "$projectDir/src/main/java/com/acti/sandboxjava/openapi.yaml".toString()
+    inputSpec = "$projectDir/src/main/java/com/acti/quest/openapi.yaml".toString()
     outputDir = "$buildDir/generated/openapi".toString()
     apiPackage = "com.acti.order.api"                // <-- order api
     modelPackage = "com.acti.order.model"            // <-- order models
