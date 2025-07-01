@@ -181,7 +181,7 @@ components:
           type: integer
           minimum: 1
         unitPriceCents:
-          type: integer
+          type: long
           minimum: 0
 
     UpdateOrderStatusRequest:

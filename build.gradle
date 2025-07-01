@@ -36,7 +36,11 @@ dependencies {
     implementation 'io.swagger.core.v3:swagger-annotations:2.2.32'           // ✅ support generated code
     implementation 'com.fasterxml.jackson.core:jackson-databind'
     implementation 'org.openapitools:jackson-databind-nullable:0.2.6'        // ✅ support nullable types in OpenAPI
+    compileOnly("org.projectlombok:lombok:1.18.38")
+    annotationProcessor("org.projectlombok:lombok:1.18.38")
 
+    testCompileOnly("org.projectlombok:lombok:1.18.38")
+    testAnnotationProcessor("org.projectlombok:lombok:1.18.38")
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }

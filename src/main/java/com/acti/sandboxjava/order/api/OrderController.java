@@ -1,4 +1,4 @@
-package com.acti.sandboxjava.order;
+package com.acti.sandboxjava.order.api;
 
 import com.acti.order.api.OrdersApi;
 import com.acti.order.model.CreateOrderRequest;
@@ -6,20 +6,25 @@ import com.acti.order.model.OrderListResponse;
 import com.acti.order.model.OrderResponse;
 import com.acti.order.model.OrderStatus;
 import com.acti.order.model.UpdateOrderStatusRequest;
+import com.acti.sandboxjava.order.service.OrderHandler;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
 
 @RestController
+@RequiredArgsConstructor
 public class OrderController implements OrdersApi {
 
+    private final OrderHandler orderHandler;
 
     @Override
     public ResponseEntity<OrderResponse> createOrder(
             @Valid CreateOrderRequest createOrderRequest) {
         // TODO: Replace this stub with actual implementation
+
         OrderResponse response = new OrderResponse();
         return ResponseEntity.ok(response);
     }
