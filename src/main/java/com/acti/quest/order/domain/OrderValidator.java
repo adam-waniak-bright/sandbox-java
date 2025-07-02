@@ -1,11 +1,10 @@
 package com.acti.quest.order.domain;
 
 import com.acti.order.model.CreateOrderRequest;
-import lombok.SneakyThrows;
-import org.springframework.stereotype.Component;
-
 import java.util.HashSet;
 import java.util.Set;
+import lombok.SneakyThrows;
+import org.springframework.stereotype.Component;
 
 @Component
 public class OrderValidator {
@@ -20,4 +19,3 @@ public class OrderValidator {
         }
     }
 }
-

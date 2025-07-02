@@ -1,21 +1,18 @@
 package com.acti.quest.order.service;
 
 import com.acti.order.model.CreateOrderRequest;
-import com.acti.order.model.OrderItemResponse;
 import com.acti.order.model.OrderResponse;
 import com.acti.quest.order.domain.Order;
+import com.acti.quest.order.domain.OrderItem;
 import com.acti.quest.order.domain.OrderStatus;
 import com.acti.quest.order.domain.OrderValidator;
-import com.acti.quest.order.domain.OrderItem;
 import com.acti.quest.order.repository.OrderItemRepository;
 import com.acti.quest.order.repository.OrderRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
-import org.springframework.stereotype.Component;
-
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
@@ -32,18 +29,19 @@ public class OrderHandler {
         customerService.validateCustomerIsActive(request.getCustomerId());
 
         // Build order items
-        List<OrderItem> items = request.getItems().stream().map(itemReq -> {
-            long lineTotal = itemReq.getQuantity() * itemReq.getUnitPriceCents();
-            return new OrderItem(
-                    UUID.randomUUID(),
-                    null,  // orderId to be set after saving order
-                    itemReq.getProductId(),
-                    itemReq.getProductName(),
-                    itemReq.getQuantity(),
-                    itemReq.getUnitPriceCents(),
-                    lineTotal
-            );
-        }).toList();
+        List<OrderItem> items = request.getItems().stream()
+                .map(itemReq -> {
+                    long lineTotal = itemReq.getQuantity() * itemReq.getUnitPriceCents();
+                    return new OrderItem(
+                            UUID.randomUUID(),
+                            null, // orderId to be set after saving order
+                            itemReq.getProductId(),
+                            itemReq.getProductName(),
+                            itemReq.getQuantity(),
+                            itemReq.getUnitPriceCents(),
+                            lineTotal);
+                })
+                .toList();
 
         // Calculate totals
         long subtotal = items.stream().mapToLong(OrderItem::getLineTotalCents).sum();
@@ -66,8 +64,6 @@ public class OrderHandler {
         order.setTotalAmount(total);
         order.setCreatedAt(OffsetDateTime.now());
 
-
-
         // Save order and items
         Order savedOrder = saveOrder(order, items);
 
@@ -77,12 +73,11 @@ public class OrderHandler {
 
     private Order saveOrder(Order order, List<OrderItem> items) {
         Order savedOrder = orderRepository.save(order);
-        items.forEach(item -> item.setOrder(savedOrder));  // ✅ set the full entity
+        items.forEach(item -> item.setOrder(savedOrder)); // ✅ set the full entity
         orderItemRepository.saveAll(items);
         savedOrder.setItems(items); // attach saved items
         return savedOrder;
     }
-
 
     private OrderResponse toOrderResponse(Order order) {
         OrderResponse response = new OrderResponse();
@@ -93,8 +88,8 @@ public class OrderHandler {
         response.setShippingCents(Math.toIntExact(order.getShippingAmount()));
         response.setTotalCents(Math.toIntExact(order.getTotalAmount()));
         response.setCreatedAt(order.getCreatedAt());
-        response.setItems(
-                order.getItems().stream().map(item -> {
+        response.setItems(order.getItems().stream()
+                .map(item -> {
                     var itemResponse = new com.acti.order.model.OrderItemResponse();
                     itemResponse.setId(UUID.fromString(String.valueOf(item.getId())));
                     itemResponse.setProductId(item.getProductId());
@@ -102,8 +97,8 @@ public class OrderHandler {
                     itemResponse.setQuantity(item.getQuantity());
                     itemResponse.setUnitPriceCents(Math.toIntExact(item.getUnitPriceCents()));
                     return itemResponse;
-                }).toList()
-        );
+                })
+                .toList());
         return response;
     }
 }

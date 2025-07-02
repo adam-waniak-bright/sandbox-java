@@ -19,5 +19,4 @@ public class Customer {
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
     private CustomerStatus status;
-
 }

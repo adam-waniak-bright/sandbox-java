@@ -15,7 +15,8 @@ public class CustomerService {
 
     @SneakyThrows
     public void validateCustomerIsActive(String customerId) {
-        Customer customer = customerRepository.findById(customerId)
+        Customer customer = customerRepository
+                .findById(customerId)
                 .orElseThrow(() -> new IllegalArgumentException("Customer not found: " + customerId));
 
         if (customer.getStatus() != CustomerStatus.ACTIVE) {
@@ -23,4 +24,3 @@ public class CustomerService {
         }
     }
 }
-

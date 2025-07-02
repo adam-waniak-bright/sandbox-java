@@ -4,7 +4,7 @@ plugins {
     id 'org.springframework.boot' version '3.5.0'
     id 'io.spring.dependency-management' version '1.1.7'
     id 'org.openapi.generator' version '7.4.0'  // ✅ Add OpenAPI Generator plugin
-//    id("com.diffplug.spotless") version "7.0.3" apply false
+    id("com.diffplug.spotless") version "7.0.3"
 }
 
 group = 'com.acti'
@@ -20,12 +20,12 @@ repositories {
     mavenCentral()
 }
 
-//spotless {
-//    java {
-//        palantirJavaFormat()
-//        targetExclude("build/**")
-//    }
-//}
+spotless {
+    java {
+        palantirJavaFormat()
+        targetExclude("build/**")
+    }
+}
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'

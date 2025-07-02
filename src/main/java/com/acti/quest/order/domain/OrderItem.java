@@ -1,11 +1,10 @@
 package com.acti.quest.order.domain;
 
 import jakarta.persistence.*;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
-
-import java.util.UUID;
 
 @Entity
 @Table(name = "order_items")
@@ -23,7 +22,7 @@ public class OrderItem {
     private Order order;
 
     @Column(name = "product_id", nullable = false, length = 20)
-    private String productId;  // Format: "PRD" + 5 digits
+    private String productId; // Format: "PRD" + 5 digits
 
     @Column(name = "product_name", nullable = false)
     private String productName;

@@ -1,11 +1,11 @@
 package com.acti.quest.order.error;
+
 import com.acti.order.model.ErrorResponse;
+import java.time.OffsetDateTime;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
-
-import java.time.OffsetDateTime;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -25,7 +25,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneric(Exception ex) {
-        ErrorResponse error = buildError("internal_error", "Something went wrong", HttpStatus.INTERNAL_SERVER_ERROR.value());
+        ErrorResponse error =
+                buildError("internal_error", "Something went wrong", HttpStatus.INTERNAL_SERVER_ERROR.value());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
 
@@ -37,4 +38,3 @@ public class GlobalExceptionHandler {
         return error;
     }
 }
-

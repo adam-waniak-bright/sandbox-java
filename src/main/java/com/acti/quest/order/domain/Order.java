@@ -1,12 +1,11 @@
 package com.acti.quest.order.domain;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Table(name = "orders")
@@ -19,7 +18,7 @@ public class Order {
     private UUID id;
 
     @Column(name = "customer_id", nullable = false, length = 20)
-    private String customerId;  // Format: "CUST" + 4-8 alphanumeric
+    private String customerId; // Format: "CUST" + 4-8 alphanumeric
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
