@@ -6,6 +6,7 @@ import lombok.Setter;
 
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Table(name = "orders")
@@ -15,7 +16,7 @@ public class Order {
 
     @Id
     @Column(columnDefinition = "uuid")
-    private String id;
+    private UUID id;
 
     @Column(name = "customer_id", nullable = false, length = 20)
     private String customerId;  // Format: "CUST" + 4-8 alphanumeric

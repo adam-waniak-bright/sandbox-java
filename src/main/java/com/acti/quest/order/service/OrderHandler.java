@@ -3,10 +3,12 @@ package com.acti.quest.order.service;
 import com.acti.order.model.CreateOrderRequest;
 import com.acti.order.model.OrderItemResponse;
 import com.acti.order.model.OrderResponse;
-import com.acti.order.model.OrderStatus;
 import com.acti.quest.order.domain.Order;
+import com.acti.quest.order.domain.OrderStatus;
 import com.acti.quest.order.domain.OrderValidator;
 import com.acti.quest.order.domain.OrderItem;
+import com.acti.quest.order.repository.OrderItemRepository;
+import com.acti.quest.order.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Component;
@@ -18,23 +20,23 @@ import java.util.UUID;
 @Component
 @RequiredArgsConstructor
 public class OrderHandler {
+
     private final OrderValidator validator;
     private final CustomerService customerService;
+    private final OrderRepository orderRepository;
+    private final OrderItemRepository orderItemRepository;
 
-    @SneakyThrows
     public OrderResponse handleCreateOrder(CreateOrderRequest request) {
-        // Validate product IDs, quantities, prices
+        // Validate request and customer
         validator.validateRequest(request);
-
-        // Validate customer status
         customerService.validateCustomerIsActive(request.getCustomerId());
 
-        // Calculate items line totals
+        // Build order items
         List<OrderItem> items = request.getItems().stream().map(itemReq -> {
             long lineTotal = itemReq.getQuantity() * itemReq.getUnitPriceCents();
             return new OrderItem(
                     UUID.randomUUID(),
-                    null,
+                    null,  // orderId to be set after saving order
                     itemReq.getProductId(),
                     itemReq.getProductName(),
                     itemReq.getQuantity(),
@@ -43,6 +45,7 @@ public class OrderHandler {
             );
         }).toList();
 
+        // Calculate totals
         long subtotal = items.stream().mapToLong(OrderItem::getLineTotalCents).sum();
         long tax = Math.round(subtotal * Order.TAX_RATE);
         long shipping = subtotal < Order.SHIPPING_THRESHOLD_CENTS ? Order.SHIPPING_COST_CENTS : 0L;
@@ -52,34 +55,55 @@ public class OrderHandler {
             throw new IllegalArgumentException("Order total must be at least $1.00");
         }
 
-        return buildOrderResponse(request.getCustomerId(), items, subtotal, tax, shipping, total);
+        // Build order entity
+        Order order = new Order();
+        order.setId(UUID.randomUUID());
+        order.setCustomerId(request.getCustomerId());
+        order.setStatus(OrderStatus.DRAFT);
+        order.setSubtotalAmount(subtotal);
+        order.setTaxAmount(tax);
+        order.setShippingAmount(shipping);
+        order.setTotalAmount(total);
+        order.setCreatedAt(OffsetDateTime.now());
+
+
+
+        // Save order and items
+        Order savedOrder = saveOrder(order, items);
+
+        // Build and return OrderResponse
+        return toOrderResponse(savedOrder);
     }
 
-    private OrderResponse buildOrderResponse(String customerId, List<OrderItem> items, long subtotal, long tax, long shipping, long total) {
+    private Order saveOrder(Order order, List<OrderItem> items) {
+        Order savedOrder = orderRepository.save(order);
+        items.forEach(item -> item.setOrder(savedOrder));  // ✅ set the full entity
+        orderItemRepository.saveAll(items);
+        savedOrder.setItems(items); // attach saved items
+        return savedOrder;
+    }
+
+
+    private OrderResponse toOrderResponse(Order order) {
         OrderResponse response = new OrderResponse();
-        response.setId(UUID.randomUUID());
-        response.setCustomerId(customerId);
-        response.setStatus(OrderStatus.DRAFT);
-        response.setCreatedAt(OffsetDateTime.now());
-
-        response.setSubtotalCents((int) subtotal);
-        response.setTaxCents((int) tax);
-        response.setShippingCents((int) shipping);
-        response.setTotalCents((int) total);
-
-        // Map OrderItem → OrderItemResponse
-        List<OrderItemResponse> itemResponses = items.stream().map(item -> {
-            OrderItemResponse itemResponse = new OrderItemResponse();
-            itemResponse.setId(item.getId());
-            itemResponse.setProductId(item.getProductId());
-            itemResponse.setProductName(item.getProductName());
-            itemResponse.setQuantity(item.getQuantity());
-            itemResponse.setUnitPriceCents(Math.toIntExact(item.getUnitPriceCents()));
-            return itemResponse;
-        }).toList();
-
-        response.setItems(itemResponses);
-
+        response.setId(order.getId());
+        response.setCustomerId(order.getCustomerId());
+        response.setSubtotalCents(Math.toIntExact(order.getSubtotalAmount()));
+        response.setTaxCents(Math.toIntExact(order.getTaxAmount()));
+        response.setShippingCents(Math.toIntExact(order.getShippingAmount()));
+        response.setTotalCents(Math.toIntExact(order.getTotalAmount()));
+        response.setCreatedAt(order.getCreatedAt());
+        response.setItems(
+                order.getItems().stream().map(item -> {
+                    var itemResponse = new com.acti.order.model.OrderItemResponse();
+                    itemResponse.setId(UUID.fromString(String.valueOf(item.getId())));
+                    itemResponse.setProductId(item.getProductId());
+                    itemResponse.setProductName(item.getProductName());
+                    itemResponse.setQuantity(item.getQuantity());
+                    itemResponse.setUnitPriceCents(Math.toIntExact(item.getUnitPriceCents()));
+                    return itemResponse;
+                }).toList()
+        );
         return response;
     }
 }
