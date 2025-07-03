@@ -1,8 +1,8 @@
-package com.acti.quest.order.service;
+package com.acti.quest.customer.service;
 
-import com.acti.quest.order.domain.Customer;
-import com.acti.quest.order.domain.CustomerStatus;
-import com.acti.quest.order.repository.CustomerRepository;
+import com.acti.quest.customer.domain.Customer;
+import com.acti.quest.customer.domain.CustomerStatus;
+import com.acti.quest.customer.repo.CustomerRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;

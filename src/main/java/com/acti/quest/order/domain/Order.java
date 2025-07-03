@@ -1,66 +1,63 @@
 package com.acti.quest.order.domain;
 
-import jakarta.persistence.*;
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
-@Entity
-@Table(name = "orders")
 @Getter
 @Setter
+@Builder
+@AllArgsConstructor
 public class Order {
-
-    @Id
-    @Column(columnDefinition = "uuid")
-    private UUID id;
-
-    @Column(name = "customer_id", nullable = false, length = 20)
-    private String customerId; // Format: "CUST" + 4-8 alphanumeric
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
+    private String id;
+    private String customerId;
     private OrderStatus status;
-
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> items;
-
-    @Column(name = "subtotal_cents", nullable = false)
     private Long subtotalAmount;
-
-    @Column(name = "tax_cents", nullable = false)
     private Long taxAmount;
-
-    @Column(name = "shipping_cents", nullable = false)
     private Long shippingAmount;
-
-    @Column(name = "total_cents", nullable = false)
     private Long totalAmount;
+    private LocalDateTime createdAt;
+    private LocalDateTime confirmedAt;
+    private LocalDateTime shippedAt;
+    private LocalDateTime deliveredAt;
+    private LocalDateTime cancelledAt;
 
-    @Column(name = "created_at", nullable = false)
-    private OffsetDateTime createdAt;
+    private static final double TAX_RATE = 0.08;
+    private static final long FREE_SHIPPING_THRESHOLD = 5000L;
+    private static final long SHIPPING_FEE = 500L;
+    private static final long MINIMUM_TOTAL_AMOUNT = 100L;
 
-    @Column(name = "confirmed_at")
-    private OffsetDateTime confirmedAt;
+    public Order(String customerId, List<OrderItem> items, OrderStatus status) {
+        this.id = UUID.randomUUID().toString();
+        this.customerId = customerId;
+        this.status = status;
+        this.items = items;
+        this.subtotalAmount = calculateSubtotal(items);
+        this.taxAmount = calculateTax(subtotalAmount);
+        this.shippingAmount = calculateShipping(subtotalAmount);
+        this.totalAmount = subtotalAmount + taxAmount + shippingAmount;
 
-    @Column(name = "shipped_at")
-    private OffsetDateTime shippedAt;
+        if (totalAmount < MINIMUM_TOTAL_AMOUNT) {
+            throw new IllegalArgumentException("Total amount must be at least $1.00");
+        }
 
-    @Column(name = "delivered_at")
-    private OffsetDateTime deliveredAt;
+        this.createdAt = LocalDateTime.now();
+    }
 
-    @Column(name = "cancelled_at")
-    private OffsetDateTime cancelledAt;
+    private Long calculateSubtotal(List<OrderItem> items) {
+        return items.stream().mapToLong(OrderItem::getLineTotalCents).sum();
+    }
 
-    // Business logic constraints
-    public static final int MIN_ITEMS = 1;
-    public static final int MAX_ITEMS = 20;
-    public static final long MIN_TOTAL_CENTS = 100L;
-    public static final double TAX_RATE = 0.08;
-    public static final long SHIPPING_THRESHOLD_CENTS = 5000L;
-    public static final long SHIPPING_COST_CENTS = 500L;
+    private Long calculateTax(Long subtotalAmount) {
+        return Math.round(subtotalAmount * TAX_RATE);
+    }
 
-    // Getters & setters, constructors, equals & hashCode if needed
+    private Long calculateShipping(Long subtotalAmount) {
+        return (subtotalAmount < FREE_SHIPPING_THRESHOLD) ? SHIPPING_FEE : 0L;
+    }
 }

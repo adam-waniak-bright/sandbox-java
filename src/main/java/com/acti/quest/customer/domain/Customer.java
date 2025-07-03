@@ -1,4 +1,4 @@
-package com.acti.quest.order.domain;
+package com.acti.quest.customer.domain;
 
 import jakarta.persistence.*;
 import lombok.Getter;
