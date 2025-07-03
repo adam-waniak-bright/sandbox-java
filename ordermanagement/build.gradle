@@ -1,0 +1,74 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.5.3'
+	id 'io.spring.dependency-management' version '1.1.7'
+	id("com.diffplug.spotless") version "7.0.4"
+	id "org.openapi.generator" version "7.14.0"
+}
+
+group = 'com.quest'
+version = '0.0.1-SNAPSHOT'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(21)
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+compileJava.dependsOn tasks.openApiGenerate
+
+openApiGenerate {
+	generatorName = "spring"
+	library = "spring-boot"
+	apiPackage = "com.quest.ordermanagement.order.api"
+	modelPackage = "com.quest.ordermanagement.order.api.model"
+	inputSpec = "$projectDir/openapi.yaml"
+	outputDir = "$buildDir/generated/openapi"
+	configOptions = [
+			"dateLibrary"       : "java8",
+			"interfaceOnly"     : "true",
+			"serializableModel" : "true",
+			"useTags"           : "true",
+			"useSpringBoot3"    : "true"
+	]
+}
+
+spotless {
+	java {
+		palantirJavaFormat()
+		targetExclude("build/**")
+	}
+}
+
+dependencies {
+//	implementation platform("org.springframework.boot:spring-boot-dependencies:3.5.3")
+//	testImplementation platform("org.springframework.boot:spring-boot-dependencies:3.5.3")
+	implementation("org.springframework.boot:spring-boot-starter-web")
+	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+
+	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.9")
+	implementation("org.openapitools:jackson-databind-nullable:0.2.6")
+//    	implementation("io.swagger.core.v3:swagger-annotations:2.2.32")
+	compileOnly 'org.projectlombok:lombok:1.18.38'
+	annotationProcessor 'org.projectlombok:lombok:1.18.38'
+	runtimeOnly("org.postgresql:postgresql")
+
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+sourceSets {
+	main {
+		java {
+			srcDir("${buildDir}/generated/openapi/src/main/java")
+		}
+	}
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}

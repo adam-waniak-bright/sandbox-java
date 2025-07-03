@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: ordermanagement
+  datasource:
+    url: jdbc:postgresql://localhost:5432/ordermanagement
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: create-drop
+
+server:
+  servlet:
+    context-path: /api
