@@ -6,7 +6,8 @@ import com.acti.order.model.OrderListResponse;
 import com.acti.order.model.OrderResponse;
 import com.acti.order.model.OrderStatus;
 import com.acti.order.model.UpdateOrderStatusRequest;
-import com.acti.quest.order.service.OrderHandler;
+import com.acti.quest.order.service.CreateOrderHandler;
+import com.acti.quest.order.service.FetchOrderHandler;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -17,18 +18,17 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class OrderController implements OrdersApi {
 
-    private final OrderHandler orderHandler;
+    private final CreateOrderHandler createOrderHandler;
+    private final FetchOrderHandler fetchOrderHandler;
 
     @Override
     public ResponseEntity<OrderResponse> createOrder(@Valid CreateOrderRequest createOrderRequest) {
-        return ResponseEntity.ok(orderHandler.handleCreateOrder(createOrderRequest));
+        return ResponseEntity.ok(createOrderHandler.handleCreateOrder(createOrderRequest));
     }
 
     @Override
     public ResponseEntity<OrderResponse> getOrder(UUID orderId) {
-        // TODO: Replace this stub with actual implementation
-        OrderResponse response = new OrderResponse();
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(fetchOrderHandler.getOrderById(orderId));
     }
 
     @Override
