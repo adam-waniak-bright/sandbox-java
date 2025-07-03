@@ -1,7 +1,10 @@
+
 plugins {
     id 'java'
     id 'org.springframework.boot' version '3.5.0'
     id 'io.spring.dependency-management' version '1.1.7'
+    id 'org.openapi.generator' version '7.4.0'  // ✅ Add OpenAPI Generator plugin
+    id("com.diffplug.spotless") version "7.0.3"
 }
 
 group = 'com.acti'
@@ -17,10 +20,59 @@ repositories {
     mavenCentral()
 }
 
+spotless {
+    java {
+        palantirJavaFormat()
+        targetExclude("build/**")
+    }
+}
+
 dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    runtimeOnly 'org.postgresql:postgresql'
+
     implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0' // ✅  Swagger UI at /swagger-ui.html
+    implementation 'io.swagger.core.v3:swagger-annotations:2.2.32'           // ✅ support generated code
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'org.openapitools:jackson-databind-nullable:0.2.6'        // ✅ support nullable types in OpenAPI
+    compileOnly("org.projectlombok:lombok:1.18.38")
+    annotationProcessor("org.projectlombok:lombok:1.18.38")
+
+    testCompileOnly("org.projectlombok:lombok:1.18.38")
+    testAnnotationProcessor("org.projectlombok:lombok:1.18.38")
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+// ✅ Configure OpenAPI code generation
+openApiGenerate {
+    generatorName = "spring"
+    inputSpec = "$projectDir/src/main/java/com/acti/quest/openapi.yaml".toString()
+    outputDir = "$buildDir/generated/openapi".toString()
+    apiPackage = "com.acti.order.api"                // <-- order api
+    modelPackage = "com.acti.order.model"            // <-- order models
+    configOptions = [
+            "dateLibrary"       : "java8",
+            "interfaceOnly"     : "true",
+            "useSpringBoot3"    : "true",
+            "serializableModel" : "true"
+    ]
+}
+
+
+// ✅ Make sure generated code is compiled
+tasks.compileJava {
+    dependsOn(tasks.openApiGenerate)
+}
+
+// ✅ Include generated sources
+sourceSets {
+    main {
+        java {
+            srcDir("${buildDir}/generated/openapi/src/main/java")
+        }
+    }
 }
 
 tasks.named('test') {
