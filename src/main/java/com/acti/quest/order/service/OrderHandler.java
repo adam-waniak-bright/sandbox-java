@@ -1,6 +1,7 @@
 package com.acti.quest.order.service;
 
 import com.acti.order.model.CreateOrderRequest;
+import com.acti.order.model.OrderItemResponse;
 import com.acti.order.model.OrderResponse;
 import com.acti.quest.customer.service.CustomerService;
 import com.acti.quest.order.domain.Order;
@@ -10,7 +11,7 @@ import com.acti.quest.order.domain.OrderValidator;
 import com.acti.quest.order.repo.OrderEntity;
 import com.acti.quest.order.repo.OrderEntityMapper;
 import com.acti.quest.order.repo.OrderRepository;
-import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -65,18 +66,31 @@ public class OrderHandler {
         return orderItems;
     }
 
-    private OrderResponse toOrderResponse(Order order) {
-        OrderResponse response = new OrderResponse();
-        response.setId(UUID.fromString(order.getId()));
-        response.setCustomerId(order.getCustomerId());
-        response.setSubtotalCents(Math.toIntExact(order.getSubtotalAmount()));
-        response.setTaxCents(Math.toIntExact(order.getTaxAmount()));
-        response.setShippingCents(Math.toIntExact(order.getShippingAmount()));
-        response.setTotalCents(Math.toIntExact(order.getTotalAmount()));
-        response.setCreatedAt(OffsetDateTime.from(order.getCreatedAt()));
-        response.setItems(order.getItems().stream()
+    public OrderResponse toOrderResponse(Order order) {
+        return new OrderResponse()
+                .id(UUID.fromString(order.getId()))
+                .customerId(order.getCustomerId())
+                .status(com.acti.order.model.OrderStatus.valueOf(
+                        order.getStatus().name()))
+                .items(getOrderItemResponses(order))
+                .subtotalCents(order.getSubtotalAmount().intValue())
+                .taxCents(order.getTaxAmount().intValue())
+                .shippingCents(order.getShippingAmount().intValue())
+                .totalCents(order.getTotalAmount().intValue())
+                .createdAt(order.getCreatedAt() != null ? order.getCreatedAt().atOffset(ZoneOffset.UTC) : null)
+                .confirmedAt(
+                        order.getConfirmedAt() != null ? order.getConfirmedAt().atOffset(ZoneOffset.UTC) : null)
+                .shippedAt(order.getShippedAt() != null ? order.getShippedAt().atOffset(ZoneOffset.UTC) : null)
+                .deliveredAt(
+                        order.getDeliveredAt() != null ? order.getDeliveredAt().atOffset(ZoneOffset.UTC) : null)
+                .cancelledAt(
+                        order.getCancelledAt() != null ? order.getCancelledAt().atOffset(ZoneOffset.UTC) : null);
+    }
+
+    private static List<OrderItemResponse> getOrderItemResponses(Order order) {
+        return order.getItems().stream()
                 .map(item -> {
-                    var itemResponse = new com.acti.order.model.OrderItemResponse();
+                    var itemResponse = new OrderItemResponse();
                     itemResponse.setId(UUID.fromString(String.valueOf(item.getId())));
                     itemResponse.setProductId(item.getProductId());
                     itemResponse.setProductName(item.getProductName());
@@ -84,7 +98,6 @@ public class OrderHandler {
                     itemResponse.setUnitPriceCents(Math.toIntExact(item.getUnitPriceCents()));
                     return itemResponse;
                 })
-                .toList());
-        return response;
+                .toList();
     }
 }

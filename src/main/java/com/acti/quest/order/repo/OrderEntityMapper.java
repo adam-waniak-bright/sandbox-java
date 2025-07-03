@@ -4,7 +4,6 @@ import com.acti.quest.order.domain.Order;
 import com.acti.quest.order.domain.OrderItem;
 import java.util.List;
 import java.util.UUID;
-
 import org.springframework.stereotype.Component;
 
 @Component
@@ -72,5 +71,4 @@ public class OrderEntityMapper {
                         item.getLineTotalCents()))
                 .toList();
     }
-
 }
