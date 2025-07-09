@@ -8,6 +8,7 @@ import com.acti.order.model.OrderStatus;
 import com.acti.order.model.UpdateOrderStatusRequest;
 import com.acti.quest.order.service.CreateOrderHandler;
 import com.acti.quest.order.service.FetchOrderHandler;
+import com.acti.quest.order.service.UpdateOrderHandler;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,7 @@ public class OrderController implements OrdersApi {
 
     private final CreateOrderHandler createOrderHandler;
     private final FetchOrderHandler fetchOrderHandler;
+    private final UpdateOrderHandler updateOrderHandler;
 
     @Override
     public ResponseEntity<OrderResponse> createOrder(@Valid CreateOrderRequest createOrderRequest) {
@@ -40,8 +42,6 @@ public class OrderController implements OrdersApi {
     @Override
     public ResponseEntity<OrderResponse> updateOrderStatus(
             UUID orderId, @Valid UpdateOrderStatusRequest updateOrderStatusRequest) {
-        // TODO: Replace this stub with actual implementation
-        OrderResponse response = new OrderResponse();
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(updateOrderHandler.updateOrderStatus(orderId, updateOrderStatusRequest));
     }
 }

@@ -1,5 +1,6 @@
 package com.acti.quest.order.domain;
 
+import com.acti.order.model.OrderStatus;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;

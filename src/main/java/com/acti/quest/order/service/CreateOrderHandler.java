@@ -2,10 +2,10 @@ package com.acti.quest.order.service;
 
 import com.acti.order.model.CreateOrderRequest;
 import com.acti.order.model.OrderResponse;
+import com.acti.order.model.OrderStatus;
 import com.acti.quest.customer.service.CustomerService;
 import com.acti.quest.order.domain.Order;
 import com.acti.quest.order.domain.OrderItem;
-import com.acti.quest.order.domain.OrderStatus;
 import com.acti.quest.order.domain.OrderValidator;
 import com.acti.quest.order.repo.OrderEntity;
 import com.acti.quest.order.repo.OrderEntityMapper;
