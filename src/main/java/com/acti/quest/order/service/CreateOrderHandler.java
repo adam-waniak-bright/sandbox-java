@@ -1,7 +1,6 @@
 package com.acti.quest.order.service;
 
 import com.acti.order.model.CreateOrderRequest;
-import com.acti.order.model.OrderItemResponse;
 import com.acti.order.model.OrderResponse;
 import com.acti.quest.customer.service.CustomerService;
 import com.acti.quest.order.domain.Order;
@@ -11,7 +10,6 @@ import com.acti.quest.order.domain.OrderValidator;
 import com.acti.quest.order.repo.OrderEntity;
 import com.acti.quest.order.repo.OrderEntityMapper;
 import com.acti.quest.order.repo.OrderRepository;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -66,6 +64,4 @@ public class CreateOrderHandler {
         }
         return orderItems;
     }
-
-
 }

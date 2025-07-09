@@ -34,9 +34,7 @@ public class OrderController implements OrdersApi {
     @Override
     public ResponseEntity<OrderListResponse> listOrders(
             String customerId, OrderStatus status, Integer page, Integer limit) {
-        // TODO: Replace this stub with actual implementation
-        OrderListResponse response = new OrderListResponse();
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(fetchOrderHandler.listOrders(customerId, status, page, limit));
     }
 
     @Override
