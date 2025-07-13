@@ -22,14 +22,12 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class FetchOrderHandler {
     private final OrderRepository orderRepository;
-    private final OrderEntityMapper orderEntityMapper;
-    private final OrderResponseMapper orderResponseMapper;
 
     public OrderResponse getOrder(String orderId) {
         return orderRepository
                 .findById(orderId)
-                .map(orderEntityMapper::toDomain)
-                .map(orderResponseMapper::toOrderResponse)
+                .map(OrderEntityMapper::toDomain)
+                .map(OrderResponseMapper::toOrderResponse)
                 .orElseThrow(() -> new OrderNotFoundException("Order not found with ID: " + orderId));
     }
 
@@ -39,14 +37,14 @@ public class FetchOrderHandler {
         var pageable = PageRequest.of(Math.max(0, page - 1), limit);
         var specification =
                 createOrderSpecification(new OrderFilter(Optional.ofNullable(customerId), Optional.ofNullable(status)));
-        Page<Order> orderPage = orderRepository.findAll(specification, pageable).map(orderEntityMapper::toDomain);
+        Page<Order> orderPage = orderRepository.findAll(specification, pageable).map(OrderEntityMapper::toDomain);
         return mapToOrderListResponse(orderPage);
     }
 
     private OrderListResponse mapToOrderListResponse(Page<Order> orderPage) {
         return new OrderListResponse()
                 .orders(orderPage.getContent().stream()
-                        .map(orderResponseMapper::toOrderResponse)
+                        .map(OrderResponseMapper::toOrderResponse)
                         .toList())
                 .pagination(new PaginationResponse()
                         .page(orderPage.getNumber())

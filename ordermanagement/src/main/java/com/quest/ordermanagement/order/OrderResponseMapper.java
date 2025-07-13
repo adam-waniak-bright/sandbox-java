@@ -7,16 +7,16 @@ import com.quest.ordermanagement.order.domain.OrderItem;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
-import org.springframework.stereotype.Component;
 
-@Component
 public class OrderResponseMapper {
-    public OrderResponse toOrderResponse(Order order) {
+    public static OrderResponse toOrderResponse(Order order) {
         return new OrderResponse()
                 .id(order.getId())
                 .customerId(order.getCustomerId())
                 .status(order.getStatus())
-                .items(order.getItems().stream().map(this::toOrderItemResponse).toList())
+                .items(order.getItems().stream()
+                        .map(OrderResponseMapper::toOrderItemResponse)
+                        .toList())
                 .subtotalCents(order.getSubtotalAmount())
                 .taxCents(order.getTaxAmount())
                 .shippingCents(order.getShippingAmount())
@@ -28,11 +28,11 @@ public class OrderResponseMapper {
                 .cancelledAt(toOffsetDateTime(order.getCancelledAt()));
     }
 
-    private OffsetDateTime toOffsetDateTime(LocalDateTime localDateTime) {
+    private static OffsetDateTime toOffsetDateTime(LocalDateTime localDateTime) {
         return localDateTime != null ? localDateTime.atOffset(ZoneOffset.UTC) : null;
     }
 
-    private OrderItemResponse toOrderItemResponse(OrderItem item) {
+    private static OrderItemResponse toOrderItemResponse(OrderItem item) {
         return new OrderItemResponse().id(item.getId()).productId(item.getProductId());
     }
 }
