@@ -1,6 +1,6 @@
 package com.acti.quest.order.repo;
 
-import com.acti.quest.order.domain.OrderStatus;
+import com.acti.order.model.OrderStatus;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
