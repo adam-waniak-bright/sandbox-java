@@ -1,20 +1,16 @@
 package com.quest.ordermanagement.order;
 
+import static com.quest.ordermanagement.order.OrderResponseMapper.toOrderResponse;
+
 import com.quest.ordermanagement.order.api.model.OrderListResponse;
 import com.quest.ordermanagement.order.api.model.OrderResponse;
 import com.quest.ordermanagement.order.api.model.OrderStatus;
 import com.quest.ordermanagement.order.api.model.PaginationResponse;
 import com.quest.ordermanagement.order.domain.Order;
-import com.quest.ordermanagement.order.domain.repo.OrderEntity;
-import com.quest.ordermanagement.order.domain.repo.OrderEntityMapper;
 import com.quest.ordermanagement.order.domain.repo.OrderRepository;
-import com.quest.ordermanagement.order.error.OrderNotFoundException;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -24,20 +20,13 @@ public class FetchOrderHandler {
     private final OrderRepository orderRepository;
 
     public OrderResponse getOrder(String orderId) {
-        return orderRepository
-                .findById(orderId)
-                .map(OrderEntityMapper::toDomain)
-                .map(OrderResponseMapper::toOrderResponse)
-                .orElseThrow(() -> new OrderNotFoundException("Order not found with ID: " + orderId));
+        return toOrderResponse(orderRepository.findOrderById(orderId));
     }
 
     public OrderListResponse listOrders(String customerId, OrderStatus status, Integer page, Integer limit) {
         log.info(
                 "Fetching orders for customerId: {}, status: {}, page: {}, limit: {}", customerId, status, page, limit);
-        var pageable = PageRequest.of(Math.max(0, page - 1), limit);
-        var specification =
-                createOrderSpecification(new OrderFilter(Optional.ofNullable(customerId), Optional.ofNullable(status)));
-        Page<Order> orderPage = orderRepository.findAll(specification, pageable).map(OrderEntityMapper::toDomain);
+        Page<Order> orderPage = orderRepository.findAllOrders(customerId, status, page, limit);
         return mapToOrderListResponse(orderPage);
     }
 
@@ -53,18 +42,5 @@ public class FetchOrderHandler {
                         .totalPages(orderPage.getTotalPages())
                         .hasNext(orderPage.hasNext())
                         .hasPrevious(orderPage.hasPrevious()));
-    }
-
-    private Specification<OrderEntity> createOrderSpecification(OrderFilter filter) {
-        Specification<OrderEntity> spec = (root, query, builder) -> builder.conjunction();
-        if (filter.customerId().isPresent()) {
-            spec = spec.and((root, query, builder) ->
-                    builder.equal(root.get("customerId"), filter.customerId().get()));
-        }
-        if (filter.orderStatus().isPresent()) {
-            spec = spec.and((root, query, builder) ->
-                    builder.equal(root.get("status"), filter.orderStatus().get().name()));
-        }
-        return spec;
     }
 }

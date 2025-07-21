@@ -1,7 +1,6 @@
 package com.quest.ordermanagement.order;
 
 import static com.quest.ordermanagement.order.OrderResponseMapper.toOrderResponse;
-import static com.quest.ordermanagement.order.domain.repo.OrderEntityMapper.toEntity;
 
 import com.quest.ordermanagement.customer.FetchCustomerHandler;
 import com.quest.ordermanagement.order.api.model.CreateOrderRequest;
@@ -29,8 +28,8 @@ public class CreateOrderHandler {
     public OrderResponse createOrder(CreateOrderRequest createOrderRequest) {
         fetchCustomerHandler.verifyCustomerExists(createOrderRequest.getCustomerId());
         var orderItems = createOrderItems(createOrderRequest);
-        var order = new Order(createOrderRequest.getCustomerId(), orderItems);
-        orderRepository.save(toEntity(order));
+        var order = Order.of(createOrderRequest.getCustomerId(), orderItems);
+        orderRepository.saveOrder(order);
         return toOrderResponse(order);
     }
 

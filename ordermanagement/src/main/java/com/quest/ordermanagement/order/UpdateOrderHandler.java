@@ -1,10 +1,13 @@
 package com.quest.ordermanagement.order;
 
+import static com.quest.ordermanagement.order.OrderResponseMapper.toOrderResponse;
+
 import com.quest.ordermanagement.order.api.model.OrderResponse;
+import com.quest.ordermanagement.order.api.model.OrderStatus;
 import com.quest.ordermanagement.order.api.model.UpdateOrderStatusRequest;
-import com.quest.ordermanagement.order.domain.repo.OrderEntityMapper;
+import com.quest.ordermanagement.order.domain.Order;
 import com.quest.ordermanagement.order.domain.repo.OrderRepository;
-import com.quest.ordermanagement.order.error.OrderNotFoundException;
+import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -12,16 +15,24 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class UpdateOrderHandler {
     private final OrderRepository orderRepository;
-    private final OrderEntityMapper orderEntityMapper;
-    private final OrderResponseMapper orderResponseMapper;
 
     public OrderResponse updateOrderStatus(String orderId, UpdateOrderStatusRequest updateOrderStatusRequest) {
-        var order = orderRepository
-                .findById(orderId)
-                .map(orderEntityMapper::toDomain)
-                .orElseThrow(() -> new OrderNotFoundException("Order not found with ID: " + orderId));
+        var order = orderRepository.findOrderById(orderId);
         order.setStatus(updateOrderStatusRequest.getStatus());
-        orderRepository.save(orderEntityMapper.toEntity(order));
-        return orderResponseMapper.toOrderResponse(order);
+        updateOrderTimestamps(order, updateOrderStatusRequest.getStatus());
+        orderRepository.saveOrder(order);
+        return toOrderResponse(order);
+    }
+
+    private void updateOrderTimestamps(Order order, OrderStatus status) {
+        switch (status) {
+            case CONFIRMED -> order.setConfirmedAt(LocalDateTime.now());
+            case SHIPPED -> order.setShippedAt(LocalDateTime.now());
+            case DELIVERED -> order.setDeliveredAt(LocalDateTime.now());
+            case CANCELLED -> order.setCancelledAt(LocalDateTime.now());
+            default -> {
+                // NOOP
+            }
+        }
     }
 }

@@ -53,10 +53,10 @@ public class Order {
 
     // TODO: why should the logic be in domain, and not handler
 
-    public Order(String customerId, List<OrderItem> items, OrderStatus status) {
+    private Order(String customerId, List<OrderItem> items) {
         this.id = UUID.randomUUID().toString();
         this.customerId = customerId;
-        this.status = status;
+        this.status = OrderStatus.DRAFT;
         this.items = items;
         this.subtotalAmount = calculateSubtotal(items);
         this.taxAmount = calculateTax(subtotalAmount);
@@ -80,5 +80,9 @@ public class Order {
 
     private Long calculateSubtotal(List<OrderItem> items) {
         return items.stream().mapToLong(OrderItem::getLineTotalCents).sum();
+    }
+
+    public static Order of(String customerId, List<OrderItem> items) {
+        return new Order(customerId, items);
     }
 }
