@@ -51,12 +51,10 @@ public class Order {
      */
     private static final long MINIMUM_TOTAL_AMOUNT = 100L;
 
-    // TODO: why should the logic be in domain, and not handler
-
-    public Order(String customerId, List<OrderItem> items, OrderStatus status) {
+    private Order(String customerId, List<OrderItem> items) {
         this.id = UUID.randomUUID().toString();
         this.customerId = customerId;
-        this.status = status;
+        this.status = OrderStatus.DRAFT;
         this.items = items;
         this.subtotalAmount = calculateSubtotal(items);
         this.taxAmount = calculateTax(subtotalAmount);
@@ -80,5 +78,46 @@ public class Order {
 
     private Long calculateSubtotal(List<OrderItem> items) {
         return items.stream().mapToLong(OrderItem::getLineTotalCents).sum();
+    }
+
+    public static Order create(String customerId, List<OrderItem> items) {
+        return new Order(customerId, items);
+    }
+
+    public void updateStatus(OrderStatus newStatus) {
+        switch (newStatus) {
+            case CONFIRMED:
+                if (!(this.status == OrderStatus.DRAFT)) {
+                    throw new IllegalArgumentException("Invalid status transition");
+                }
+                this.status = OrderStatus.CONFIRMED;
+                this.confirmedAt = LocalDateTime.now();
+                break;
+            case SHIPPED:
+                if (!(this.status == OrderStatus.CONFIRMED)) {
+                    throw new IllegalArgumentException("Invalid status transition");
+                }
+                this.status = OrderStatus.SHIPPED;
+                this.shippedAt = LocalDateTime.now();
+                break;
+            case DELIVERED:
+                if (!(this.status == OrderStatus.SHIPPED)) {
+                    throw new IllegalArgumentException("Invalid status transition");
+                }
+                this.status = OrderStatus.DELIVERED;
+                this.deliveredAt = LocalDateTime.now();
+                break;
+            case CANCELLED:
+                if (!(this.status == OrderStatus.DRAFT
+                        || this.status == OrderStatus.CONFIRMED
+                        || this.status == OrderStatus.SHIPPED)) {
+                    throw new IllegalArgumentException("Invalid status transition");
+                }
+                this.status = OrderStatus.CANCELLED;
+                this.cancelledAt = LocalDateTime.now();
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid status transition");
+        }
     }
 }

@@ -1,12 +1,12 @@
 package com.quest.ordermanagement.order;
 
+import static com.quest.ordermanagement.order.OrderResponseMapper.toOrderResponse;
+
 import com.quest.ordermanagement.customer.FetchCustomerHandler;
 import com.quest.ordermanagement.order.api.model.CreateOrderRequest;
 import com.quest.ordermanagement.order.api.model.OrderResponse;
-import com.quest.ordermanagement.order.api.model.OrderStatus;
 import com.quest.ordermanagement.order.domain.Order;
 import com.quest.ordermanagement.order.domain.OrderItem;
-import com.quest.ordermanagement.order.domain.repo.OrderEntityMapper;
 import com.quest.ordermanagement.order.domain.repo.OrderRepository;
 import com.quest.ordermanagement.product.FetchProductHandler;
 import java.util.ArrayList;
@@ -24,15 +24,13 @@ public class CreateOrderHandler {
     private final OrderRepository orderRepository;
     private final FetchCustomerHandler fetchCustomerHandler;
     private final FetchProductHandler fetchProductHandler;
-    private final OrderEntityMapper orderEntityMapper;
-    private final OrderResponseMapper orderResponseMapper;
 
-    public OrderResponse createOrder(CreateOrderRequest createOrderRequest) {
-        fetchCustomerHandler.verifyCustomerExists(createOrderRequest.getCustomerId());
+    public OrderResponse createOrder(String customerId, CreateOrderRequest createOrderRequest) {
+        fetchCustomerHandler.verifyCustomerExists(customerId);
         var orderItems = createOrderItems(createOrderRequest);
-        var order = new Order(createOrderRequest.getCustomerId(), orderItems, OrderStatus.DRAFT);
-        orderRepository.save(orderEntityMapper.toEntity(order));
-        return orderResponseMapper.toOrderResponse(order);
+        var order = Order.create(customerId, orderItems);
+        orderRepository.saveOrder(order);
+        return toOrderResponse(order);
     }
 
     private List<OrderItem> createOrderItems(CreateOrderRequest createOrderRequest) {

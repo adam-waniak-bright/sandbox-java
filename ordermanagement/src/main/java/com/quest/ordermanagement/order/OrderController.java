@@ -6,6 +6,7 @@ import com.quest.ordermanagement.order.api.model.OrderListResponse;
 import com.quest.ordermanagement.order.api.model.OrderResponse;
 import com.quest.ordermanagement.order.api.model.OrderStatus;
 import com.quest.ordermanagement.order.api.model.UpdateOrderStatusRequest;
+import com.quest.ordermanagement.order.query.FindOrdersQuery;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
@@ -18,8 +19,8 @@ public class OrderController implements OrdersApi {
     private final UpdateOrderHandler updateOrderHandler;
 
     @Override
-    public ResponseEntity<OrderResponse> createOrder(CreateOrderRequest createOrderRequest) {
-        return ResponseEntity.ok(createOrderHandler.createOrder(createOrderRequest));
+    public ResponseEntity<OrderResponse> createOrder(String customerId, CreateOrderRequest createOrderRequest) {
+        return ResponseEntity.ok(createOrderHandler.createOrder(customerId, createOrderRequest));
     }
 
     @Override
@@ -30,7 +31,7 @@ public class OrderController implements OrdersApi {
     @Override
     public ResponseEntity<OrderListResponse> listOrders(
             String customerId, OrderStatus status, Integer page, Integer limit) {
-        return ResponseEntity.ok(fetchOrderHandler.listOrders(customerId, status, page, limit));
+        return ResponseEntity.ok(fetchOrderHandler.listOrders(new FindOrdersQuery(customerId, status, page, limit)));
     }
 
     @Override

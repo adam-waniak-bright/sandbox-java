@@ -3,11 +3,9 @@ package com.quest.ordermanagement.order.domain.repo;
 import com.quest.ordermanagement.order.domain.Order;
 import com.quest.ordermanagement.order.domain.OrderItem;
 import java.util.List;
-import org.springframework.stereotype.Component;
 
-@Component
-public class OrderEntityMapper {
-    public OrderEntity toEntity(Order order) {
+class OrderEntityMapper {
+    public static OrderEntity toEntity(Order order) {
         return new OrderEntity(
                 order.getId(),
                 order.getCustomerId(),
@@ -24,7 +22,7 @@ public class OrderEntityMapper {
                 order.getCancelledAt());
     }
 
-    private List<OrderItemEntity> toEntityOrderItem(Order order) {
+    private static List<OrderItemEntity> toEntityOrderItem(Order order) {
         var items = order.getItems();
         return items.stream()
                 .map(item -> new OrderItemEntity(
@@ -38,11 +36,11 @@ public class OrderEntityMapper {
                 .toList();
     }
 
-    private OrderEntity createOrderEntity(Order order) {
+    private static OrderEntity createOrderEntity(Order order) {
         return OrderEntity.builder().id(order.getId()).build();
     }
 
-    public Order toDomain(OrderEntity orderEntity) {
+    public static Order toDomain(OrderEntity orderEntity) {
         return new Order(
                 orderEntity.getId(),
                 orderEntity.getCustomerId(),
@@ -59,7 +57,7 @@ public class OrderEntityMapper {
                 orderEntity.getCancelledAt());
     }
 
-    private List<OrderItem> toDomainOrderItem(OrderEntity orderEntity) {
+    private static List<OrderItem> toDomainOrderItem(OrderEntity orderEntity) {
         var items = orderEntity.getItems();
         return items.stream()
                 .map(item -> new OrderItem(
