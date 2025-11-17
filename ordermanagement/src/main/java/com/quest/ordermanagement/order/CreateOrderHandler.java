@@ -25,10 +25,10 @@ public class CreateOrderHandler {
     private final FetchCustomerHandler fetchCustomerHandler;
     private final FetchProductHandler fetchProductHandler;
 
-    public OrderResponse createOrder(CreateOrderRequest createOrderRequest) {
-        fetchCustomerHandler.verifyCustomerExists(createOrderRequest.getCustomerId());
+    public OrderResponse createOrder(String customerId, CreateOrderRequest createOrderRequest) {
+        fetchCustomerHandler.verifyCustomerExists(customerId);
         var orderItems = createOrderItems(createOrderRequest);
-        var order = Order.create(createOrderRequest.getCustomerId(), orderItems);
+        var order = Order.create(customerId, orderItems);
         orderRepository.saveOrder(order);
         return toOrderResponse(order);
     }

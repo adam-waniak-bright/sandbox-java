@@ -18,6 +18,12 @@ paths:
       operationId: createOrder
       tags:
         - Orders
+      parameters:
+        - name: customerId
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/CustomerId'
       requestBody:
         required: true
         content:
@@ -25,7 +31,6 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateOrderRequest'
             example:
-              customerId: "CUST1234"
               items:
                 - productId: "PRD00001"
                   productName: "Wireless Headphones"
@@ -64,11 +69,9 @@ paths:
       parameters:
         - name: customerId
           in: query
-          description: Filter by customer ID
-          required: false
+          required: true
           schema:
-            type: string
-            pattern: '^CUST[A-Za-z0-9]{4,8}$'
+            $ref: '#/components/schemas/CustomerId'
         - name: status
           in: query
           description: Filter by order status
@@ -181,14 +184,8 @@ components:
     CreateOrderRequest:
       type: object
       required:
-        - customerId
         - items
       properties:
-        customerId:
-          type: string
-          pattern: '^CUST[A-Za-z0-9]{4,8}$'
-          description: Customer identifier
-          example: "CUST1234"
         items:
           type: array
           minItems: 1
@@ -237,9 +234,7 @@ components:
           type: string
           description: Unique identifier for the order
         customerId:
-          type: string
-          pattern: '^CUST[A-Za-z0-9]{4,8}$'
-          description: Customer identifier
+          $ref: '#/components/schemas/CustomerId'
         status:
           $ref: '#/components/schemas/OrderStatus'
         items:
@@ -311,6 +306,11 @@ components:
         pagination:
           $ref: '#/components/schemas/PaginationResponse'
 
+    CustomerId:
+      type: string
+      pattern: '^CUST[A-Za-z0-9]{4,8}$'
+      description: Customer identifier
+      example: "CUST1234"
     PaginationResponse:
       type: object
       properties:

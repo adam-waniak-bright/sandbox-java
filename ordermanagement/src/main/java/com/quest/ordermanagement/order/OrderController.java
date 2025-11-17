@@ -19,8 +19,8 @@ public class OrderController implements OrdersApi {
     private final UpdateOrderHandler updateOrderHandler;
 
     @Override
-    public ResponseEntity<OrderResponse> createOrder(CreateOrderRequest createOrderRequest) {
-        return ResponseEntity.ok(createOrderHandler.createOrder(createOrderRequest));
+    public ResponseEntity<OrderResponse> createOrder(String customerId, CreateOrderRequest createOrderRequest) {
+        return ResponseEntity.ok(createOrderHandler.createOrder(customerId, createOrderRequest));
     }
 
     @Override
