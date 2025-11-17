@@ -4,10 +4,10 @@ import static com.quest.ordermanagement.order.OrderResponseMapper.toOrderRespons
 
 import com.quest.ordermanagement.order.api.model.OrderListResponse;
 import com.quest.ordermanagement.order.api.model.OrderResponse;
-import com.quest.ordermanagement.order.api.model.OrderStatus;
 import com.quest.ordermanagement.order.api.model.PaginationResponse;
 import com.quest.ordermanagement.order.domain.Order;
 import com.quest.ordermanagement.order.domain.repo.OrderRepository;
+import com.quest.ordermanagement.order.query.FindOrdersQuery;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -20,13 +20,18 @@ public class FetchOrderHandler {
     private final OrderRepository orderRepository;
 
     public OrderResponse getOrder(String orderId) {
-        return toOrderResponse(orderRepository.findOrderById(orderId));
+        return toOrderResponse(orderRepository.getOrderById(orderId));
     }
 
-    public OrderListResponse listOrders(String customerId, OrderStatus status, Integer page, Integer limit) {
+    public OrderListResponse listOrders(FindOrdersQuery query) {
         log.info(
-                "Fetching orders for customerId: {}, status: {}, page: {}, limit: {}", customerId, status, page, limit);
-        Page<Order> orderPage = orderRepository.findAllOrders(customerId, status, page, limit);
+                "Fetching orders for customerId: {}, status: {}, page: {}, limit: {}",
+                query.customerId(),
+                query.status(),
+                query.page(),
+                query.limit());
+        Page<Order> orderPage =
+                orderRepository.findAllOrders(query.customerId(), query.status(), query.page(), query.limit());
         return mapToOrderListResponse(orderPage);
     }
 

@@ -4,7 +4,7 @@ import com.quest.ordermanagement.order.domain.Order;
 import com.quest.ordermanagement.order.domain.OrderItem;
 import java.util.List;
 
-public class OrderEntityMapper {
+class OrderEntityMapper {
     public static OrderEntity toEntity(Order order) {
         return new OrderEntity(
                 order.getId(),

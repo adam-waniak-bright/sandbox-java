@@ -28,7 +28,7 @@ public class CreateOrderHandler {
     public OrderResponse createOrder(CreateOrderRequest createOrderRequest) {
         fetchCustomerHandler.verifyCustomerExists(createOrderRequest.getCustomerId());
         var orderItems = createOrderItems(createOrderRequest);
-        var order = Order.of(createOrderRequest.getCustomerId(), orderItems);
+        var order = Order.create(createOrderRequest.getCustomerId(), orderItems);
         orderRepository.saveOrder(order);
         return toOrderResponse(order);
     }

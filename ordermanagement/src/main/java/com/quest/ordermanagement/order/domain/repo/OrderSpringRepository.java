@@ -13,17 +13,22 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 
 @RequiredArgsConstructor
-public class OrderRepositoryDefault implements OrderRepository {
-    private final OrderRepositorySpring orderRepositorySpring;
+class OrderSpringRepository implements OrderRepository {
+    private final OrderEntityRepository orderEntityRepository;
 
     @Override
     public void saveOrder(Order order) {
-        orderRepositorySpring.save(toEntity(order));
+        orderEntityRepository.save(toEntity(order));
     }
 
     @Override
-    public Order findOrderById(String orderId) {
-        return orderRepositorySpring
+    public Optional<Order> findOrderById(String orderId) {
+        return orderEntityRepository.findById(orderId).map(OrderEntityMapper::toDomain);
+    }
+
+    @Override
+    public Order getOrderById(String orderId) {
+        return orderEntityRepository
                 .findById(orderId)
                 .map(OrderEntityMapper::toDomain)
                 .orElseThrow(() -> new OrderNotFoundException("Order not found with ID: " + orderId));
@@ -34,7 +39,7 @@ public class OrderRepositoryDefault implements OrderRepository {
         var pageable = PageRequest.of(Math.max(0, page - 1), limit);
         var specification =
                 createOrderSpecification(new OrderFilter(Optional.ofNullable(customerId), Optional.ofNullable(status)));
-        return orderRepositorySpring.findAll(specification, pageable).map(OrderEntityMapper::toDomain);
+        return orderEntityRepository.findAll(specification, pageable).map(OrderEntityMapper::toDomain);
     }
 
     private Specification<OrderEntity> createOrderSpecification(OrderFilter filter) {

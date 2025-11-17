@@ -345,7 +345,7 @@ components:
         - SHIPPED
         - DELIVERED
         - CANCELLED
-      description: Current status of the order
+      description: Set of valid statuses an order can have during its lifecycle.
 
     ErrorResponse:
       type: object
